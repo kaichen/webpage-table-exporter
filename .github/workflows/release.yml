@@ -32,12 +32,18 @@ jobs:
       - name: Package Chrome extension
         run: bun run zip
         
+      - name: Get version without v prefix
+        id: get_version
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+      
       - name: Upload Chrome extension
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ACTION_GH_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./.output/chrome-mv3.zip
-          asset_name: webpage-table-exporter-chrome-${{ github.event.release.tag_name }}.zip
+          asset_path: ./.output/webpage-table-exporter-${{ steps.get_version.outputs.version }}-chrome.zip
+          asset_name: webpage-table-exporter-${{ steps.get_version.outputs.version }}-chrome.zip
           asset_content_type: application/zip
