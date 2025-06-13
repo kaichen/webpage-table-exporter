@@ -67,6 +67,7 @@
   border-radius: 6px;
   background: #fafbfc;
   transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .table-item:hover {

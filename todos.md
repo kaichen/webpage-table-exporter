@@ -3,7 +3,7 @@
 > 根据 `plan.md` 拆解的可执行任务清单
 
 ## T001: 内容脚本 (entrypoints/content.ts)
-- [x] 监听来自 Popup 的 `get_tables`、`export_table` 消息。
+- [x] 监听来自 Popup 的 `get_tables`、`export_table`、`highlight_table` 消息。
 - [x] 实现 `scanTables()`：
   - 扫描 `document.querySelectorAll('table')` 并过滤隐藏表格。
   - 为每张表生成 `TableMeta`（含 `id`, `rows`, `cols`, `preview`）。
@@ -11,6 +11,10 @@
   - 根据 id 定位表格元素。
   - 使用 `tableToCsv()` 生成 CSV 并触发下载。
 - [x] 编写 `escapeCsv()` 与 `tableToCsv()` 工具函数。
+- [x] 实现表格高亮功能：
+  - `scrollToElement()` - 平滑滚动到表格位置。
+  - `highlightTable()` - 添加黄色背景动画效果。
+  - `highlightTableById()` - 根据ID高亮指定表格。
 
 ## T002: Popup (entrypoints/popup)
 - [x] 创建 `App.tsx` 基础布局。
@@ -19,6 +23,7 @@
 - [x] 构建 `TableItem` 组件，显示行×列及预览文本。
 - [x] 点击条目后发送 `export_table` 消息，并显示导出进度/结果提示。
 - [x] 处理无表格时的空态展示。
+- [x] 实现表格高亮功能：点击表格项时页面滚动到对应位置并动画高亮背景。
 
 ## T003: Manifest & 构建配置
 - [x] 在 `wxt.config.ts` 中声明权限：`tabs`, `activeTab`，并注册内容脚本。

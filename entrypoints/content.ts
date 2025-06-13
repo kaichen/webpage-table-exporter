@@ -49,6 +49,43 @@ function scanTables(): TableMeta[] {
   });
 }
 
+function scrollToElement(element: HTMLElement): void {
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function highlightTable(element: HTMLElement): void {
+  const originalBackgroundColor = element.style.backgroundColor;
+  const originalTransition = element.style.transition;
+  
+  element.style.transition = 'background-color 0.3s ease';
+  element.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+  
+  setTimeout(() => {
+    element.style.backgroundColor = originalBackgroundColor;
+    setTimeout(() => {
+      element.style.transition = originalTransition;
+    }, 300);
+  }, 1500);
+}
+
+function highlightTableById(id: string): void {
+  const tables = document.querySelectorAll('table');
+  const visibleTables = Array.from(tables).filter(table => {
+    const style = window.getComputedStyle(table);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  });
+
+  const index = parseInt(id.replace('table-', ''));
+  if (index < 0 || index >= visibleTables.length) {
+    console.error('Table not found:', id);
+    return;
+  }
+
+  const table = visibleTables[index] as HTMLTableElement;
+  scrollToElement(table);
+  highlightTable(table);
+}
+
 function exportTable(id: string): void {
   const tables = document.querySelectorAll('table');
   const visibleTables = Array.from(tables).filter(table => {
@@ -88,6 +125,10 @@ export default defineContentScript({
         return true;
       } else if (message.type === 'export_table') {
         exportTable(message.id);
+        sendResponse({ success: true });
+        return true;
+      } else if (message.type === 'highlight_table') {
+        highlightTableById(message.id);
         sendResponse({ success: true });
         return true;
       }

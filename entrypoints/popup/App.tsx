@@ -11,18 +11,22 @@ interface TableMeta {
 interface TableItemProps {
   table: TableMeta;
   onExport: (id: string) => void;
+  onHighlight: (id: string) => void;
   isExporting: boolean;
 }
 
-function TableItem({ table, onExport, isExporting }: TableItemProps) {
+function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps) {
   return (
-    <div className="table-item">
+    <div className="table-item" onClick={() => onHighlight(table.id)}>
       <div className="table-info">
         <div className="table-size">{table.rows} × {table.cols}</div>
         <div className="table-preview">{table.preview}</div>
       </div>
       <button 
-        onClick={() => onExport(table.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onExport(table.id);
+        }}
         disabled={isExporting}
         className="export-btn"
       >
@@ -35,10 +39,11 @@ function TableItem({ table, onExport, isExporting }: TableItemProps) {
 interface TableListProps {
   tables: TableMeta[];
   onExport: (id: string) => void;
+  onHighlight: (id: string) => void;
   exportingId: string | null;
 }
 
-function TableList({ tables, onExport, exportingId }: TableListProps) {
+function TableList({ tables, onExport, onHighlight, exportingId }: TableListProps) {
   if (tables.length === 0) {
     return (
       <div className="empty-state">
@@ -55,6 +60,7 @@ function TableList({ tables, onExport, exportingId }: TableListProps) {
           key={table.id} 
           table={table} 
           onExport={onExport}
+          onHighlight={onHighlight}
           isExporting={exportingId === table.id}
         />
       ))}
@@ -108,6 +114,19 @@ function App() {
     }
   };
 
+  const handleHighlight = async (tableId: string) => {
+    try {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (!tab.id) {
+        return;
+      }
+
+      await browser.tabs.sendMessage(tab.id, { type: 'highlight_table', id: tableId });
+    } catch (err) {
+      console.error('Error highlighting table:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="app">
@@ -130,7 +149,7 @@ function App() {
     <div className="app">
       <h1>Table Exporter</h1>
       <p className="subtitle">Found {tables.length} table{tables.length !== 1 ? 's' : ''} on this page</p>
-      <TableList tables={tables} onExport={handleExport} exportingId={exportingId} />
+      <TableList tables={tables} onExport={handleExport} onHighlight={handleHighlight} exportingId={exportingId} />
     </div>
   );
 }
