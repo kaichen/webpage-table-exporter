@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>合并单元格示例 - Table Exporter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .description {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+        .table-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+        }
+        .merged-header {
+            background-color: #e3f2fd;
+            font-weight: bold;
+        }
+        .merged-data {
+            background-color: #fff3e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>合并单元格示例</h1>
+    
+    <div class="description">
+        <h3>重要说明</h3>
+        <p>⚠️ 合并单元格会影响CSV导出的准确性，因为CSV格式不支持单元格合并。测试目标：</p>
+        <ul>
+            <li>验证扩展对合并单元格的处理方式</li>
+            <li>确保不会因为合并单元格而导致程序崩溃</li>
+            <li>观察导出结果中合并内容的展现</li>
+            <li>测试行列计数的准确性</li>
+        </ul>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 1: 横向合并示例</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="3" class="merged-header">2023年销售数据</th>
+                    <th rowspan="2">备注</th>
+                </tr>
+                <tr>
+                    <th>Q1</th>
+                    <th>Q2</th>
+                    <th>Q3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>¥120万</td>
+                    <td>¥150万</td>
+                    <td>¥180万</td>
+                    <td rowspan="2" class="merged-data">同比增长15%</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="merged-data">上半年合计: ¥270万</td>
+                    <td>¥200万</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 2: 纵向合并示例</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>类别</th>
+                    <th>产品</th>
+                    <th>价格</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="3" class="merged-data">电子产品</td>
+                    <td>手机</td>
+                    <td>¥3,999</td>
+                    <td>有库存</td>
+                </tr>
+                <tr>
+                    <td>平板</td>
+                    <td>¥2,999</td>
+                    <td>缺货</td>
+                </tr>
+                <tr>
+                    <td>耳机</td>
+                    <td>¥999</td>
+                    <td>有库存</td>
+                </tr>
+                <tr>
+                    <td rowspan="2" class="merged-data">家具</td>
+                    <td>桌子</td>
+                    <td>¥899</td>
+                    <td>有库存</td>
+                </tr>
+                <tr>
+                    <td>椅子</td>
+                    <td>¥599</td>
+                    <td>有库存</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 3: 复杂合并示例</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="5" class="merged-header">公司组织架构</th>
+                </tr>
+                <tr>
+                    <th rowspan="2">部门</th>
+                    <th colspan="2">管理层</th>
+                    <th colspan="2">员工数量</th>
+                </tr>
+                <tr>
+                    <th>总监</th>
+                    <th>经理</th>
+                    <th>正式员工</th>
+                    <th>实习生</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2" class="merged-data">技术部</td>
+                    <td>张总监</td>
+                    <td>李经理</td>
+                    <td>25</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="merged-data">副经理: 王副经理</td>
+                    <td colspan="2" class="merged-data">总计: 30人</td>
+                </tr>
+                <tr>
+                    <td>市场部</td>
+                    <td>赵总监</td>
+                    <td>钱经理</td>
+                    <td>15</td>
+                    <td>3</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="description">
+        <h3>预期行为</h3>
+        <p>对于合并单元格，扩展应该：</p>
+        <ul>
+            <li><strong>识别表格</strong>: 正确检测到 3 个表格</li>
+            <li><strong>行列计数</strong>: 基于实际的tr和td元素数量计算</li>
+            <li><strong>内容提取</strong>: 合并单元格的内容可能在多个位置重复出现</li>
+            <li><strong>不崩溃</strong>: 程序应该稳定运行，不因合并单元格而出错</li>
+            <li><strong>CSV格式</strong>: 导出的CSV可能存在空白单元格或重复内容</li>
+        </ul>
+        
+        <h3>注意事项</h3>
+        <p>CSV格式本身不支持单元格合并，因此：</p>
+        <ul>
+            <li>合并的内容可能只出现在第一个单元格位置</li>
+            <li>被合并覆盖的单元格位置可能为空</li>
+            <li>这是正常现象，不是程序错误</li>
+        </ul>
+    </div>
+</body>
+</html>

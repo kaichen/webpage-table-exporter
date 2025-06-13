@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多表格示例 - Table Exporter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .description {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #bee5eb;
+        }
+        .table-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+        }
+        .small-table {
+            width: 50%;
+        }
+        .medium-table {
+            width: 75%;
+        }
+    </style>
+</head>
+<body>
+    <h1>多表格示例页面</h1>
+    
+    <div class="description">
+        <h3>测试目标</h3>
+        <p>这个页面包含多个不同大小和格式的表格，用于测试：</p>
+        <ul>
+            <li>多表格识别和列表显示</li>
+            <li>不同大小表格的处理</li>
+            <li>表格预览文本生成</li>
+            <li>独立导出每个表格</li>
+        </ul>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 1: 产品销售数据 (大表格)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>产品名称</th>
+                    <th>类别</th>
+                    <th>单价</th>
+                    <th>销量</th>
+                    <th>总收入</th>
+                    <th>库存</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>iPhone 15</td>
+                    <td>手机</td>
+                    <td>¥5,999</td>
+                    <td>1,250</td>
+                    <td>¥7,498,750</td>
+                    <td>450</td>
+                </tr>
+                <tr>
+                    <td>MacBook Pro</td>
+                    <td>笔记本</td>
+                    <td>¥12,999</td>
+                    <td>680</td>
+                    <td>¥8,839,320</td>
+                    <td>120</td>
+                </tr>
+                <tr>
+                    <td>iPad Air</td>
+                    <td>平板</td>
+                    <td>¥4,299</td>
+                    <td>890</td>
+                    <td>¥3,826,110</td>
+                    <td>280</td>
+                </tr>
+                <tr>
+                    <td>AirPods Pro</td>
+                    <td>耳机</td>
+                    <td>¥1,899</td>
+                    <td>2,150</td>
+                    <td>¥4,082,850</td>
+                    <td>750</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 2: 员工考勤 (中等表格)</h2>
+        <table class="medium-table">
+            <thead>
+                <tr>
+                    <th>员工ID</th>
+                    <th>姓名</th>
+                    <th>出勤天数</th>
+                    <th>迟到次数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>EMP001</td>
+                    <td>张三</td>
+                    <td>22</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>EMP002</td>
+                    <td>李四</td>
+                    <td>20</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>EMP003</td>
+                    <td>王五</td>
+                    <td>21</td>
+                    <td>2</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 3: 快速统计 (小表格)</h2>
+        <table class="small-table">
+            <thead>
+                <tr>
+                    <th>指标</th>
+                    <th>数值</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>总用户数</td>
+                    <td>15,482</td>
+                </tr>
+                <tr>
+                    <td>活跃用户</td>
+                    <td>8,291</td>
+                </tr>
+                <tr>
+                    <td>转化率</td>
+                    <td>12.5%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 4: 仅表头 (极小表格)</h2>
+        <table class="small-table">
+            <thead>
+                <tr>
+                    <th>标题A</th>
+                    <th>标题B</th>
+                    <th>标题C</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>数据1</td>
+                    <td>数据2</td>
+                    <td>数据3</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h2>表格 5: 单行表格</h2>
+        <table class="small-table">
+            <tr>
+                <td>单元格1</td>
+                <td>单元格2</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="description">
+        <h3>预期结果</h3>
+        <p>使用扩展导出此页面时，应该：</p>
+        <ul>
+            <li>识别到 5 个表格</li>
+            <li>表格1: 4×6，预览: "产品名称 | 类别 | 单价 | iPhone 15 | 手机 | ¥5,999"</li>
+            <li>表格2: 3×4，预览: "员工ID | 姓名 | 出勤天数 | EMP001 | 张三 | 22"</li>
+            <li>表格3: 3×2，预览: "指标 | 数值 | 总用户数 | 15,482 | 活跃用户 | 转化率"</li>
+            <li>表格4: 1×3，预览: "标题A | 标题B | 标题C | 数据1 | 数据2 | 数据3"</li>
+            <li>表格5: 1×2，预览: "单元格1 | 单元格2"</li>
+            <li>每个表格都可以独立导出为CSV文件</li>
+        </ul>
+    </div>
+</body>
+</html>

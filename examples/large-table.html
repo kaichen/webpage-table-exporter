@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大表格示例 - Table Exporter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .description {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .performance-note {
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>大表格性能测试</h1>
+    
+    <div class="description">
+        <h3>测试目标</h3>
+        <p>这个表格包含大量数据，用于测试扩展的性能表现：</p>
+        <ul>
+            <li>大表格的扫描和识别性能</li>
+            <li>CSV生成的内存使用情况</li>
+            <li>长预览文本的截断处理</li>
+            <li>大文件下载的稳定性</li>
+        </ul>
+    </div>
+
+    <div class="performance-note">
+        <strong>性能提示:</strong> 此表格包含100行×10列=1000个单元格，用于测试大数据量处理能力。
+    </div>
+
+    <h2>用户交易记录表 (100行 × 10列)</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>交易ID</th>
+                    <th>用户ID</th>
+                    <th>用户名</th>
+                    <th>交易类型</th>
+                    <th>金额</th>
+                    <th>交易时间</th>
+                    <th>商品名称</th>
+                    <th>支付方式</th>
+                    <th>状态</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                <script>
+                    // 生成100行测试数据
+                    const transactionTypes = ['购买', '退款', '充值', '提现', '转账'];
+                    const paymentMethods = ['支付宝', '微信支付', '银行卡', '余额支付', 'PayPal'];
+                    const statuses = ['成功', '处理中', '失败', '已取消'];
+                    const products = ['iPhone 15', 'MacBook Pro', 'iPad Air', 'AirPods', '充电器', '数据线', '保护壳', '键盘', '鼠标', '显示器'];
+                    
+                    for (let i = 1; i <= 100; i++) {
+                        const transactionId = `TXN${String(i).padStart(6, '0')}`;
+                        const userId = `U${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+                        const username = `用户${i.toString().padStart(3, '0')}`;
+                        const transactionType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+                        const amount = `¥${(Math.random() * 10000 + 100).toFixed(2)}`;
+                        const datetime = `2023-12-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')} ${String(Math.floor(Math.random() * 24)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`;
+                        const product = products[Math.floor(Math.random() * products.length)];
+                        const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
+                        const status = statuses[Math.floor(Math.random() * statuses.length)];
+                        const note = Math.random() > 0.7 ? `备注信息${i}` : '';
+                        
+                        document.write(`
+                            <tr>
+                                <td>${transactionId}</td>
+                                <td>${userId}</td>
+                                <td>${username}</td>
+                                <td>${transactionType}</td>
+                                <td>${amount}</td>
+                                <td>${datetime}</td>
+                                <td>${product}</td>
+                                <td>${paymentMethod}</td>
+                                <td>${status}</td>
+                                <td>${note}</td>
+                            </tr>
+                        `);
+                    }
+                </script>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="description">
+        <h3>预期结果</h3>
+        <p>使用扩展导出此表格时，应该：</p>
+        <ul>
+            <li>识别到 1 个表格 (100×10)</li>
+            <li>预览显示前6个单元格内容</li>
+            <li>扫描过程在合理时间内完成 (< 2秒)</li>
+            <li>CSV生成不会导致浏览器卡顿</li>
+            <li>成功下载包含所有100行数据的CSV文件</li>
+            <li>文件大小约为20-30KB</li>
+        </ul>
+        
+        <h3>性能指标</h3>
+        <ul>
+            <li><strong>扫描时间</strong>: 应在1秒内完成表格识别</li>
+            <li><strong>内存占用</strong>: CSV字符串生成不应超过浏览器限制</li>
+            <li><strong>下载稳定性</strong>: 大文件下载应该成功完成</li>
+            <li><strong>UI响应性</strong>: 操作过程中UI不应该冻结</li>
+        </ul>
+    </div>
+
+    <div class="performance-note">
+        <strong>注意:</strong> 如果此表格导致性能问题，考虑在T004中实现以下优化：
+        <ul>
+            <li>使用数组join()代替字符串拼接</li>
+            <li>分批处理大表格数据</li>
+            <li>添加处理进度提示</li>
+            <li>限制预览文本长度</li>
+        </ul>
+    </div>
+</body>
+</html>

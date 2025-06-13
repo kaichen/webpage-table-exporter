@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隐藏表格示例 - Table Exporter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .description {
+            background: #e2e3e5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #6c757d;
+        }
+        .visible-section {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .hidden-section {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        /* 隐藏表格样式 */
+        .hidden-display-none {
+            display: none;
+        }
+        
+        .hidden-visibility {
+            visibility: hidden;
+        }
+        
+        .hidden-opacity {
+            opacity: 0;
+        }
+        
+        .hidden-height {
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .hidden-position {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .hidden-clip {
+            clip: rect(0 0 0 0);
+            position: absolute;
+        }
+
+        .toggle-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .toggle-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>隐藏表格测试</h1>
+    
+    <div class="description">
+        <h3>测试目标</h3>
+        <p>这个页面包含多种隐藏方式的表格，用于测试扩展的过滤能力：</p>
+        <ul>
+            <li>验证<code>display: none</code>表格被正确过滤</li>
+            <li>验证<code>visibility: hidden</code>表格被正确过滤</li>
+            <li>测试其他隐藏方式的表格是否被检测</li>
+            <li>确保只有真正可见的表格被导出</li>
+        </ul>
+    </div>
+
+    <div class="visible-section">
+        <h2>✅ 可见表格区域</h2>
+        <p>这些表格应该被扩展检测到：</p>
+        
+        <h3>表格 1: 完全可见</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>产品</th>
+                    <th>价格</th>
+                    <th>库存</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>笔记本电脑</td>
+                    <td>¥8,999</td>
+                    <td>25</td>
+                </tr>
+                <tr>
+                    <td>手机</td>
+                    <td>¥3,999</td>
+                    <td>50</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>表格 2: 透明但可见 (opacity: 0.3)</h3>
+        <table style="opacity: 0.3;">
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>部门</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>张三</td>
+                    <td>技术部</td>
+                </tr>
+                <tr>
+                    <td>李四</td>
+                    <td>市场部</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>表格 3: 动态显示控制</h3>
+        <button class="toggle-button" onclick="toggleTable('dynamicTable')">切换显示/隐藏</button>
+        <table id="dynamicTable">
+            <thead>
+                <tr>
+                    <th>项目</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>项目A</td>
+                    <td>进行中</td>
+                </tr>
+                <tr>
+                    <td>项目B</td>
+                    <td>已完成</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="hidden-section">
+        <h2>❌ 隐藏表格区域</h2>
+        <p>这些表格应该被扩展过滤掉：</p>
+        
+        <h3>表格 4: display: none</h3>
+        <table class="hidden-display-none">
+            <thead>
+                <tr>
+                    <th>隐藏数据1</th>
+                    <th>隐藏数据2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>不应该导出</td>
+                    <td>display none</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>表格 5: visibility: hidden</h3>
+        <table class="hidden-visibility">
+            <thead>
+                <tr>
+                    <th>不可见1</th>
+                    <th>不可见2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>不应该导出</td>
+                    <td>visibility hidden</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>表格 6: 其他隐藏方式 (可能被检测到)</h3>
+        
+        <h4>opacity: 0</h4>
+        <table class="hidden-opacity">
+            <thead>
+                <tr>
+                    <th>透明表格</th>
+                    <th>数据</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>完全透明</td>
+                    <td>opacity 0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>height: 0</h4>
+        <table class="hidden-height">
+            <thead>
+                <tr>
+                    <th>高度为0</th>
+                    <th>数据</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>高度隐藏</td>
+                    <td>height 0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>position: absolute; left: -9999px</h4>
+        <table class="hidden-position">
+            <thead>
+                <tr>
+                    <th>位置隐藏</th>
+                    <th>数据</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>屏幕外</td>
+                    <td>position hidden</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h4>clip: rect(0 0 0 0)</h4>
+        <table class="hidden-clip">
+            <thead>
+                <tr>
+                    <th>裁剪隐藏</th>
+                    <th>数据</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>被裁剪</td>
+                    <td>clip hidden</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="description">
+        <h3>预期结果</h3>
+        <p>使用扩展扫描此页面时，应该：</p>
+        <ul>
+            <li><strong>检测到的表格</strong>: 2-4个 (取决于透明度和其他隐藏方式的处理)</li>
+            <li><strong>表格1</strong>: 一定会被检测到 (2×3)</li>
+            <li><strong>表格2</strong>: 可能被检测到 (opacity: 0.3，半透明)</li>
+            <li><strong>表格3</strong>: 根据当前显示状态决定</li>
+            <li><strong>表格4和5</strong>: 一定不会被检测到 (display: none 和 visibility: hidden)</li>
+            <li><strong>表格6的子表格</strong>: 根据扩展的过滤逻辑可能被检测到</li>
+        </ul>
+        
+        <h3>核心测试点</h3>
+        <ul>
+            <li>✅ <code>display: none</code> 必须被过滤</li>
+            <li>✅ <code>visibility: hidden</code> 必须被过滤</li>
+            <li>🤔 其他隐藏方式的处理是实现细节</li>
+            <li>🔄 动态显示切换功能测试</li>
+        </ul>
+    </div>
+
+    <script>
+        function toggleTable(tableId) {
+            const table = document.getElementById(tableId);
+            if (table.style.display === 'none') {
+                table.style.display = '';
+            } else {
+                table.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
