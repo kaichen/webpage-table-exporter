@@ -10,6 +10,7 @@
 - [x] 实现 `exportTable(id)`：
   - 根据 id 定位表格元素。
   - 使用 `tableToCsv()` 生成 CSV 并触发下载。
+  - 使用格式 `table-${hostname}-${timestamp}.csv` 命名下载文件。
 - [x] 编写 `escapeCsv()` 与 `tableToCsv()` 工具函数。
 - [x] 实现表格高亮功能：
   - `scrollToElement()` - 平滑滚动到表格位置。

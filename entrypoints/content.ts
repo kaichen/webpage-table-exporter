@@ -103,9 +103,13 @@ function exportTable(id: string): void {
   const csv = tableToCsv(table);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   
+  const hostname = (window.location.hostname || 'unknown').replace(/[<>:"/\\|?*]/g, '_');
+  const timestamp = Date.now();
+  const filename = `table-${hostname}-${timestamp}.csv`;
+  
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `table-${index + 1}.csv`;
+  link.download = filename;
   link.style.display = 'none';
   
   document.body.appendChild(link);
