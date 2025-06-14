@@ -70,32 +70,45 @@ function TableList({ tables, onExport, onHighlight, exportingId }: TableListProp
 
 function App() {
   const [tables, setTables] = useState<TableMeta[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasScanned, setHasScanned] = useState(false);
 
-  useEffect(() => {
-    const getTables = async () => {
-      try {
-        const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-        if (!tab.id) {
-          setError('Unable to access current tab');
-          setLoading(false);
-          return;
-        }
+  const handleScan = async () => {
+    try {
+      setScanning(true);
+      setError(null);
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (!tab.id || !tab.url) {
+        setError('Unable to access current tab');
+        return;
+      }
 
-        const response = await browser.tabs.sendMessage(tab.id, { type: 'get_tables' });
-        setTables(response || []);
-      } catch (err) {
+      // Skip chrome:// pages
+      if (tab.url.startsWith('chrome://')) {
+        setTables([]);
+        setHasScanned(true);
+        return;
+      }
+
+      const response = await browser.tabs.sendMessage(tab.id, { type: 'get_tables' });
+      setTables(response || []);
+      setHasScanned(true);
+    } catch (err) {
+      // Handle connection errors silently - likely means content script not available
+      if (err instanceof Error && err.message.includes('Could not establish connection')) {
+        setTables([]);
+        setHasScanned(true);
+      } else {
         setError('Failed to scan tables. Please refresh the page and try again.');
         console.error('Error getting tables:', err);
-      } finally {
-        setLoading(false);
       }
-    };
-
-    getTables();
-  }, []);
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const handleExport = async (tableId: string) => {
     try {
@@ -127,20 +140,26 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="app">
-        <h1>Table Exporter</h1>
-        <div className="loading">Scanning for tables...</div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="app">
         <h1>Table Exporter</h1>
         <div className="error">{error}</div>
+        <button onClick={handleScan} disabled={scanning} className="scan-btn">
+          {scanning ? 'Scanning...' : 'Try Again'}
+        </button>
+      </div>
+    );
+  }
+
+  if (!hasScanned) {
+    return (
+      <div className="app">
+        <h1>Table Exporter</h1>
+        <p className="subtitle">Click to scan for tables on this page</p>
+        <button onClick={handleScan} disabled={scanning} className="scan-btn">
+          {scanning ? 'Scanning...' : 'Scan Tables'}
+        </button>
       </div>
     );
   }
@@ -148,7 +167,12 @@ function App() {
   return (
     <div className="app">
       <h1>Table Exporter</h1>
-      <p className="subtitle">Found {tables.length} table{tables.length !== 1 ? 's' : ''} on this page</p>
+      <div className="header">
+        <p className="subtitle">Found {tables.length} table{tables.length !== 1 ? 's' : ''} on this page</p>
+        <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
+          {scanning ? 'Scanning...' : 'Refresh'}
+        </button>
+      </div>
       <TableList tables={tables} onExport={handleExport} onHighlight={handleHighlight} exportingId={exportingId} />
     </div>
   );
