@@ -1,6 +1,6 @@
 # Webpage Table Exporter
 
-![promo-image](/assets/prompo-img-1400x560.jpg)
+![promo-image](assets/promo-img-1400x560.jpg)
 
 > A friendly open-source browser extension that lets you export any HTML table from a webpage to a CSV file with just one click. Works great in Chrome and Firefox!
 
