@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Table Grid Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .grid-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .grid-header {
+            display: flex;
+            background: #f0f0f0;
+            font-weight: bold;
+            border-bottom: 2px solid #333;
+        }
+        .grid-row {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        .grid-row:hover {
+            background: #f9f9f9;
+        }
+        .grid-cell {
+            flex: 1;
+            padding: 10px;
+            border-right: 1px solid #eee;
+        }
+        .grid-cell:last-child {
+            border-right: none;
+        }
+        .section {
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Non-Table Grid Examples</h1>
+    
+    <div class="section">
+        <h2>Example 1: Simple Grid with Header</h2>
+        <div class="grid-container">
+            <div class="grid-header">
+                <div class="grid-cell">Name</div>
+                <div class="grid-cell">Age</div>
+                <div class="grid-cell">City</div>
+                <div class="grid-cell">Country</div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell">John Doe</div>
+                <div class="grid-cell">30</div>
+                <div class="grid-cell">New York</div>
+                <div class="grid-cell">USA</div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell">Jane Smith</div>
+                <div class="grid-cell">25</div>
+                <div class="grid-cell">London</div>
+                <div class="grid-cell">UK</div>
+            </div>
+            <div class="grid-row">
+                <div class="grid-cell">Bob Johnson</div>
+                <div class="grid-cell">35</div>
+                <div class="grid-cell">Toronto</div>
+                <div class="grid-cell">Canada</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Example 2: Regular HTML Table (for comparison)</h2>
+        <table border="1" cellpadding="5">
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Stock</th>
+            </tr>
+            <tr>
+                <td>Laptop</td>
+                <td>$999</td>
+                <td>15</td>
+            </tr>
+            <tr>
+                <td>Mouse</td>
+                <td>$29</td>
+                <td>50</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Example 3: Complex Grid Structure</h2>
+        <div style="background: #f5f5f5; padding: 10px;">
+            <div style="display: flex; font-weight: bold; background: #e0e0e0; padding: 10px;">
+                <div style="flex: 2; padding: 5px;">Product Name</div>
+                <div style="flex: 1; padding: 5px;">Category</div>
+                <div style="flex: 1; padding: 5px;">Price</div>
+                <div style="flex: 1; padding: 5px;">Rating</div>
+            </div>
+            <div style="display: flex; padding: 10px; border-bottom: 1px solid #ccc;">
+                <div style="flex: 2; padding: 5px;">iPhone 14 Pro</div>
+                <div style="flex: 1; padding: 5px;">Electronics</div>
+                <div style="flex: 1; padding: 5px;">$999</div>
+                <div style="flex: 1; padding: 5px;">4.5/5</div>
+            </div>
+            <div style="display: flex; padding: 10px; border-bottom: 1px solid #ccc;">
+                <div style="flex: 2; padding: 5px;">Samsung Galaxy S23</div>
+                <div style="flex: 1; padding: 5px;">Electronics</div>
+                <div style="flex: 1; padding: 5px;">$899</div>
+                <div style="flex: 1; padding: 5px;">4.3/5</div>
+            </div>
+            <div style="display: flex; padding: 10px; border-bottom: 1px solid #ccc;">
+                <div style="flex: 2; padding: 5px;">Google Pixel 7</div>
+                <div style="flex: 1; padding: 5px;">Electronics</div>
+                <div style="flex: 1; padding: 5px;">$599</div>
+                <div style="flex: 1; padding: 5px;">4.4/5</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

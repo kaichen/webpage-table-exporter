@@ -113,3 +113,7 @@ examples/               # Test HTML files for development
 tests/                 # Unit test suites
 .github/workflows/     # CI/CD configuration
 ```
+
+## Development Memories
+
+- 每次完成任务后执行 bun run build 取代 bun run dev 进行编译验证
