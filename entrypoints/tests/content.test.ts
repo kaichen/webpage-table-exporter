@@ -8,6 +8,16 @@ interface TableMeta {
   preview: string;
 }
 
+// Minimal i18n stub for tests
+const browser = {
+  i18n: {
+    getMessage: (key: string) => ({
+      emptyTable: 'Empty table',
+      emptyGrid: 'Empty grid'
+    } as Record<string, string>)[key] || ''
+  }
+} as any;
+
 function escapeCsv(text: string): string {
   const needsQuote = /[",\n]/.test(text);
   let res = text.replace(/"/g, '""');
@@ -47,7 +57,7 @@ function scanTables(): TableMeta[] {
       id: `table-${index}`,
       rows,
       cols,
-      preview: previewCells.join(' | ') || 'Empty table'
+      preview: previewCells.join(' | ') || browser.i18n.getMessage('emptyTable')
     };
   });
 }

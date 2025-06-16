@@ -28,7 +28,7 @@ function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps
       <div className="table-info">
         <div className="table-size">
           {table.cols} × {table.rows}
-          {isGrid && <span className="grid-indicator">GRID</span>}
+          {isGrid && <span className="grid-indicator">{browser.i18n.getMessage('gridIndicator')}</span>}
         </div>
         <div className="table-preview">{table.preview}</div>
       </div>
@@ -40,7 +40,7 @@ function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps
         disabled={isExporting}
         className="export-btn"
       >
-        {isExporting ? 'Exporting...' : 'Export CSV'}
+        {isExporting ? browser.i18n.getMessage('exporting') : browser.i18n.getMessage('exportCsv')}
       </button>
     </div>
   );
@@ -57,8 +57,8 @@ function TableList({ tables, onExport, onHighlight, exportingId }: TableListProp
   if (tables.length === 0) {
     return (
       <div className="empty-state">
-        <p>No tables or grids found</p>
-        <p className="empty-hint">Use the "Select Elements" button to select grid elements from this page</p>
+        <p>{browser.i18n.getMessage('noTablesOrGrids')}</p>
+        <p className="empty-hint">{browser.i18n.getMessage('selectElementsHint')}</p>
       </div>
     );
   }
@@ -94,7 +94,7 @@ function App() {
       setError(null);
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab.id || !tab.url) {
-        setError('Unable to access current tab');
+        setError(browser.i18n.getMessage('unableAccess'));
         return;
       }
 
@@ -117,7 +117,7 @@ function App() {
       if (err instanceof Error && err.message.includes('Could not establish connection')) {
         setTables([]);
       } else {
-        setError('Failed to scan tables. Please refresh the page and try again.');
+        setError(browser.i18n.getMessage('scanFailed'));
         console.error('Error getting tables:', err);
       }
     } finally {
@@ -129,7 +129,7 @@ function App() {
     try {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab.id) {
-        setError('Unable to access current tab');
+        setError(browser.i18n.getMessage('unableAccess'));
         return;
       }
 
@@ -143,7 +143,7 @@ function App() {
         setSelectionMode(false);
       }
     } catch (err) {
-      setError('Failed to toggle selection mode. Please refresh the page.');
+      setError(browser.i18n.getMessage('toggleFailed'));
       console.error('Error toggling selection mode:', err);
     }
   };
@@ -153,7 +153,7 @@ function App() {
       setExportingId(tableId);
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!tab.id) {
-        throw new Error('Unable to access current tab');
+        throw new Error(browser.i18n.getMessage('unableAccess'));
       }
 
       const isGrid = tableId.startsWith('grid-');
@@ -163,7 +163,7 @@ function App() {
         await browser.tabs.sendMessage(tab.id, { type: 'export_table', id: tableId });
       }
     } catch (err) {
-      setError('Failed to export. Please try again.');
+      setError(browser.i18n.getMessage('exportFailed'));
       console.error('Error exporting:', err);
     } finally {
       setExportingId(null);
@@ -207,10 +207,10 @@ function App() {
   if (error) {
     return (
       <div className="app">
-        <h1>Table Exporter</h1>
+        <h1>{browser.i18n.getMessage('tableExporter')}</h1>
         <div className="error">{error}</div>
         <button onClick={handleScan} disabled={scanning} className="scan-btn">
-          {scanning ? 'Scanning...' : 'Try Again'}
+          {scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('tryAgain')}
         </button>
       </div>
     );
@@ -224,13 +224,13 @@ function App() {
   
   return (
     <div className="app">
-      <h1>Table Exporter</h1>
+      <h1>{browser.i18n.getMessage('tableExporter')}</h1>
       <div className="header">
         <p className="subtitle">
-          {hasNone && 'No tables found on this page'}
-          {hasTablesOnly && `Found ${tables.length} table${tables.length !== 1 ? 's' : ''} on this page`}
-          {hasGridsOnly && `Found ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
-          {hasBoth && `Found ${tables.length} table${tables.length !== 1 ? 's' : ''} and ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
+          {hasNone && browser.i18n.getMessage('noTables')}
+          {hasTablesOnly && browser.i18n.getMessage('foundTables', [String(tables.length), tables.length !== 1 ? 's' : ''])}
+          {hasGridsOnly && browser.i18n.getMessage('foundGrids', [String(grids.length), grids.length !== 1 ? 's' : ''])}
+          {hasBoth && browser.i18n.getMessage('foundTablesAndGrids', [String(tables.length), tables.length !== 1 ? 's' : '', String(grids.length), grids.length !== 1 ? 's' : ''])}
         </p>
       </div>
       <TableList 
@@ -245,12 +245,12 @@ function App() {
           onClick={handleSelectionMode} 
           className="scan-btn selection-btn"
         >
-          {selectionMode ? 'Cancel Selection' : 'Select Elements'}
+          {selectionMode ? browser.i18n.getMessage('cancelSelection') : browser.i18n.getMessage('selectElements')}
         </button>
         {/* Show Refresh button only after selection has been used */}
         {hasSelectedGrid && (
           <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
-            {scanning ? 'Scanning...' : 'Refresh'}
+            {scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('refresh')}
           </button>
         )}
       </div>

@@ -4,9 +4,12 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'Web Page Table Exporter',
+    name: '__MSG_extName__',
+    description: '__MSG_extDescription__',
+    default_locale: 'en',
     permissions: ['activeTab'],
     action: {
+      default_title: '__MSG_extActionTitle__',
       default_popup: 'popup/index.html',
     },
   }
