@@ -1,0 +1,258 @@
+# Development Log - Webpage Table Exporter
+Date: 2025-06-17 00:30
+
+## Session Overview
+Extended functionality to support non-table grid structures with mouse selection interface and redesigned popup UI layout.
+
+## Major Features Implemented
+
+### F001: Non-Table Grid Export System ✅
+**Primary Goal**: Enable export of div-based layouts and CSS grid structures that don't use HTML `<table>` tags
+
+#### Core Implementation (`entrypoints/content.ts`)
+- **New Interfaces**:
+  ```typescript
+  interface NonTableGrid extends TableMeta {
+    type: 'non-table';
+    elements: HTMLElement[];
+  }
+  
+  interface SelectionState {
+    enabled: boolean;
+    selectedElement: HTMLElement | null;
+    gridElements: HTMLElement[];
+    overlay: HTMLElement | null;
+  }
+  ```
+
+- **Key Functions Added**:
+  - `findSiblingRows()`: Structural signature matching for identical sibling detection
+  - `getStructureSignature()`: Element structure fingerprinting (tagName + children + display)
+  - `elementsToGrid()`: Convert HTML elements array to grid metadata
+  - `gridToCsv()`: Generate CSV from non-table grid structures
+  - `handleMouseMove()` / `handleClick()`: Interactive element selection
+  - `enableSelectionMode()` / `disableSelectionMode()`: Mouse interaction management
+
+#### Selection Algorithm
+```typescript
+const getStructureSignature = (el: HTMLElement): string => {
+  const childTags = Array.from(el.children).map(child => child.tagName).join(',');
+  const display = window.getComputedStyle(el).display;
+  return `${el.tagName}-${childTags}-${display}`;
+};
+```
+
+**Requirements**: Minimum 2 identical siblings for table detection
+**Target Use Cases**: DefiLlama-style div grids, card layouts, flexbox/CSS grid structures
+
+### F002: Mouse Selection Interface ✅
+**Visual Feedback System**:
+- **Hover Overlay**: Green dashed border with 10% opacity background
+- **Selection Confirmation**: Green outline on detected grid rows  
+- **Error Feedback**: Red overlay for invalid selections
+- **Cursor Change**: Crosshair mode during selection
+
+**User Flow**:
+1. Click "Select Elements" → popup closes, crosshair cursor activated
+2. Hover over elements → real-time grid row detection with overlay
+3. Click valid row → automatic sibling detection, popup reopens with detected grid
+4. Export as usual with "GRID" indicator
+
+### F003: Enhanced Popup UI ✅
+**Layout Redesign**:
+- **Bottom Action Bar**: Moved buttons from header to bottom with separator line
+- **Smart Button Visibility**: 
+  - "Select Elements" always visible
+  - "Refresh" only appears after grid selection has been used
+- **Status Indicators**: Green "GRID" badges for non-table structures
+- **Auto-scan**: Popup opens with immediate table detection
+
+**State Management Improvements**:
+- `hasSelectedGrid`: Tracks when selection mode has been used
+- Grid data persistence across popup sessions via `window.detectedGrid`
+- Proper cleanup of selection state and visual overlays
+
+### F004: Data Persistence Solution ✅
+**Problem**: Popup closes during selection mode, breaking message delivery
+**Solution**: Store detected grids in `window.detectedGrid`, retrieve on popup reopen
+
+```typescript
+// Store grid when selection completes
+(window as any).detectedGrid = grid;
+
+// Retrieve on next popup open
+const storedGrid = (window as any).detectedGrid;
+if (storedGrid) {
+  sendResponse([...tables, storedGrid]);
+  delete (window as any).detectedGrid;
+}
+```
+
+## Technical Architecture Updates
+
+### Message Handling Extensions
+- `enable_selection_mode` / `disable_selection_mode`: Toggle interactive selection
+- `export_grid`: Handle grid CSV export with `grid-{hostname}-{timestamp}.csv` naming
+- Enhanced `get_tables`: Returns both HTML tables and stored grid data
+
+### CSS Overlay System
+```css
+position: absolute;
+border: 2px dashed #4CAF50;
+background-color: rgba(76, 175, 80, 0.1);
+pointer-events: none;
+z-index: 99999;
+transition: all 0.2s ease;
+```
+
+### File Naming Convention
+- **Tables**: `table-{hostname}-{timestamp}.csv`
+- **Grids**: `grid-{hostname}-{timestamp}.csv`
+- **Hostname sanitization**: Replace `<>:"/\|?*` with underscores
+
+## UI/UX Improvements
+
+### F005: Interface Polish ✅
+- **Format Change**: Display as "cols × rows" instead of "rows × cols"
+- **Text Selection**: Added `user-select: none` to table items
+- **Bottom Actions**: Centered button layout with visual separation
+- **Responsive Design**: Maintained 400px popup width standard
+
+### Visual Feedback Enhancements
+- **Highlight Animation**: 1.5s yellow background fade for table highlighting
+- **Grid Detection**: Real-time overlay updates during mouse movement
+- **Selection Validation**: Color-coded feedback (green=valid, red=invalid)
+- **Loading States**: Proper disabled states and loading text
+
+## Testing & Validation
+
+### Manual Testing Scenarios
+- **DefiLlama Example**: Successfully detected and exported protocol ranking tables
+- **Mixed Content**: Pages with both HTML tables and div grids
+- **Edge Cases**: Single elements, inconsistent structures, deeply nested layouts
+- **Browser Compatibility**: Chrome extension loading and functionality
+
+### Performance Considerations
+- **DOM Traversal**: Limited to 10 levels deep in parent search
+- **Selection Efficiency**: Cached structure signatures for comparison
+- **Memory Management**: Cleanup of event listeners and overlay elements
+- **File Generation**: Proper blob cleanup with `URL.revokeObjectURL()`
+
+## Documentation Updates
+
+### README.md Enhancements ✅
+**New Sections Added**:
+- **Feature List**: Expanded with non-table capabilities
+- **How to Use - Non-Table Grids**: Complete 7-step workflow
+- **Tips Section**: Best practices and compatibility notes
+- **Updated Description**: "HTML tables and non-table grid structures"
+
+**Content Coverage**:
+- Mouse selection mode explanation
+- Grid detection requirements (2+ similar siblings)
+- Visual feedback system description
+- File naming conventions
+- Compatibility with various layout types
+
+## Git Commit History
+
+### Commit Sequence
+1. `00393fc`: Initial non-table export implementation
+2. `4df80b1`: Enhanced UI and detection improvements  
+3. `c040742`: Merge feature branch to main
+4. `c4ff5c2`: Bottom button layout redesign
+5. `fd11302`: Display format and interaction improvements
+
+### Code Quality
+- **TypeScript**: Strict type checking maintained
+- **Error Handling**: Graceful fallbacks for failed selections
+- **Memory Management**: Proper cleanup of DOM modifications
+- **Event Management**: Correct listener registration/deregistration
+
+## Architecture Decisions
+
+### Why Structural Signatures?
+- **Problem**: Detect similar elements without relying on class names
+- **Solution**: Fingerprint based on tag structure + CSS display properties
+- **Benefit**: Works across different websites and frameworks
+
+### Why Window Storage?
+- **Problem**: Popup closes during selection, breaking message flow
+- **Solution**: Temporary storage in window object
+- **Benefit**: Maintains user context across popup sessions
+
+### Why Bottom Button Layout?
+- **Problem**: Header became cluttered with multiple action buttons
+- **Solution**: Dedicated action area at bottom with clear separation
+- **Benefit**: Better visual hierarchy and user understanding
+
+## Performance Metrics
+
+### Bundle Size Impact
+- **Before**: ~191 kB popup chunk
+- **After**: ~192 kB popup chunk (minimal increase)
+- **Content Script**: 10.15 kB (stable)
+
+### Memory Usage
+- **Selection State**: Minimal overhead for DOM element references
+- **Event Listeners**: Properly managed lifecycle
+- **Overlay Elements**: Single overlay reused, cleaned up on disable
+
+## Known Limitations & Future Considerations
+
+### Current Constraints
+1. **Minimum Siblings**: Requires 2+ identical elements for detection
+2. **Structure Dependency**: Relies on consistent DOM patterns
+3. **Single Selection**: One grid per selection session
+4. **Visual Feedback**: Overlay may conflict with page styles
+
+### Future Enhancement Opportunities
+1. **Multi-Selection**: Support selecting multiple grid areas
+2. **Advanced Detection**: Machine learning for layout recognition
+3. **Export Formats**: Support for JSON, Excel, etc.
+4. **Custom Mapping**: User-defined column mappings
+5. **Batch Operations**: Process multiple grids simultaneously
+
+## Security & Privacy
+
+### Security Measures Maintained
+- ✅ No external network requests
+- ✅ Local DOM processing only
+- ✅ Minimal permission scope
+- ✅ Content script sandboxing
+- ✅ No arbitrary code execution
+
+### Privacy Considerations
+- ✅ No data transmission outside browser
+- ✅ Temporary storage only (cleared after use)
+- ✅ User-initiated actions only
+- ✅ No background data collection
+
+## Browser Compatibility
+
+### Tested Environments
+- **Chrome**: Primary development and testing platform
+- **Extension APIs**: Standard DOM + File APIs
+- **ES Features**: Modern JavaScript with TypeScript compilation
+- **CSS**: Standard properties with vendor prefixes where needed
+
+### Known Cross-Browser Considerations
+- **Firefox**: WXT handles Manifest V2 compatibility
+- **Safari**: Future consideration for WebKit compatibility
+- **Edge**: Chromium-based compatibility expected
+
+---
+
+## Session Summary
+
+Successfully implemented comprehensive non-table grid export functionality with intuitive mouse selection interface. Key achievements:
+
+1. **Smart Detection**: Structural signature matching for similar DOM elements
+2. **Interactive Selection**: Real-time visual feedback with overlay system
+3. **Seamless Integration**: Works alongside existing table export functionality
+4. **Enhanced UI**: Redesigned popup layout with improved user experience
+5. **Complete Documentation**: Updated README with detailed usage instructions
+
+The extension now supports both traditional HTML tables and modern div-based layouts, significantly expanding its utility across contemporary web applications. All functionality has been tested and validated with real-world examples.
+
+**Ready for**: Production use, web store submission, community feedback
