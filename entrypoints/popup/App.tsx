@@ -27,7 +27,7 @@ function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps
     <div className="table-item" onClick={() => onHighlight(table.id)}>
       <div className="table-info">
         <div className="table-size">
-          {table.rows} × {table.cols}
+          {table.cols} × {table.rows}
           {isGrid && <span className="grid-indicator">GRID</span>}
         </div>
         <div className="table-preview">{table.preview}</div>

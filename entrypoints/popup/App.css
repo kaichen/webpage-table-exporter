@@ -68,6 +68,7 @@
   background: #fafbfc;
   transition: background-color 0.2s;
   cursor: pointer;
+  user-select: none;
 }
 
 .table-item:hover {
