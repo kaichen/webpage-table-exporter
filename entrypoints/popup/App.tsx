@@ -57,8 +57,8 @@ function TableList({ tables, onExport, onHighlight, exportingId }: TableListProp
   if (tables.length === 0) {
     return (
       <div className="empty-state">
-        <p>No tables found on this page</p>
-        <p className="empty-hint">Try refreshing the page or navigate to a page with HTML tables</p>
+        <p>No tables or grids found</p>
+        <p className="empty-hint">Use the "Select Elements" button to select grid elements from this page</p>
       </div>
     );
   }
@@ -85,7 +85,7 @@ function App() {
   const [scanning, setScanning] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hasScanned, setHasScanned] = useState(false);
+  const [hasScanned, setHasScanned] = useState(true);
   const [selectionMode, setSelectionMode] = useState(false);
 
   const handleScan = async () => {
@@ -101,18 +101,15 @@ function App() {
       // Skip chrome:// pages
       if (tab.url.startsWith('chrome://')) {
         setTables([]);
-        setHasScanned(true);
         return;
       }
 
       const response = await browser.tabs.sendMessage(tab.id, { type: 'get_tables' });
       setTables(response || []);
-      setHasScanned(true);
     } catch (err) {
       // Handle connection errors silently - likely means content script not available
       if (err instanceof Error && err.message.includes('Could not establish connection')) {
         setTables([]);
-        setHasScanned(true);
       } else {
         setError('Failed to scan tables. Please refresh the page and try again.');
         console.error('Error getting tables:', err);
@@ -183,12 +180,14 @@ function App() {
     }
   };
 
-  // Listen for grid selection from content script
+  // Auto-scan on popup open and listen for grid selection
   useEffect(() => {
+    // Auto-scan when popup opens
+    handleScan();
+    
     const handleMessage = (message: any) => {
       if (message.type === 'grid_selected' && message.grid) {
         setGrids([message.grid]);
-        setHasScanned(true);
       }
     };
 
@@ -210,40 +209,40 @@ function App() {
     );
   }
 
-  if (!hasScanned) {
-    return (
-      <div className="app">
-        <h1>Table Exporter</h1>
-        <p className="subtitle">Click to scan for tables on this page</p>
-        <button onClick={handleScan} disabled={scanning} className="scan-btn">
-          {scanning ? 'Scanning...' : 'Scan Tables'}
-        </button>
-      </div>
-    );
-  }
-
+  const allItems = [...tables, ...grids];
+  const hasTablesOnly = tables.length > 0 && grids.length === 0;
+  const hasGridsOnly = tables.length === 0 && grids.length > 0;
+  const hasBoth = tables.length > 0 && grids.length > 0;
+  const hasNone = tables.length === 0 && grids.length === 0;
+  
   return (
     <div className="app">
       <h1>Table Exporter</h1>
       <div className="header">
         <p className="subtitle">
-          Found {tables.length} table{tables.length !== 1 ? 's' : ''}
-          {grids.length > 0 && ` and ${grids.length} grid${grids.length !== 1 ? 's' : ''}`} on this page
+          {hasNone && 'No tables found on this page'}
+          {hasTablesOnly && `Found ${tables.length} table${tables.length !== 1 ? 's' : ''} on this page`}
+          {hasGridsOnly && `Found ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
+          {hasBoth && `Found ${tables.length} table${tables.length !== 1 ? 's' : ''} and ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
-            {scanning ? 'Scanning...' : 'Refresh'}
-          </button>
+          {/* Show Refresh button only when we have found items */}
+          {!hasNone && (
+            <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
+              {scanning ? 'Scanning...' : 'Refresh'}
+            </button>
+          )}
+          {/* Show Select Elements button when no tables or always as secondary when tables exist */}
           <button 
             onClick={handleSelectionMode} 
-            className="scan-btn secondary selection-btn"
+            className={`scan-btn ${hasNone ? '' : 'secondary'} selection-btn`}
           >
             {selectionMode ? 'Cancel Selection' : 'Select Elements'}
           </button>
         </div>
       </div>
       <TableList 
-        tables={[...tables, ...grids]} 
+        tables={allItems} 
         onExport={handleExport} 
         onHighlight={handleHighlight} 
         exportingId={exportingId} 

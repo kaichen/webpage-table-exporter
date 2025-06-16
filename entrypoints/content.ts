@@ -179,54 +179,74 @@ function findSiblingRows(element: HTMLElement): HTMLElement[] {
   if (!parent) return [element];
   
   const siblings = Array.from(parent.children) as HTMLElement[];
-  const targetClasses = element.className.split(' ').filter(c => c.length > 0);
   const targetChildCount = element.children.length;
+  
+  // Get structural signature of the selected element
+  const getStructureSignature = (el: HTMLElement): string => {
+    const childTags = Array.from(el.children).map(child => child.tagName).join(',');
+    const display = window.getComputedStyle(el).display;
+    return `${el.tagName}-${childTags}-${display}`;
+  };
+  
+  const targetSignature = getStructureSignature(element);
   const targetStyle = window.getComputedStyle(element);
   
-  // Find header row if exists
-  let headerRow: HTMLElement | null = null;
-  const prevSibling = element.previousElementSibling as HTMLElement;
-  if (prevSibling && prevSibling.children.length === targetChildCount) {
-    const prevStyle = window.getComputedStyle(prevSibling);
-    if (prevStyle.fontWeight === 'bold' || prevSibling.textContent?.includes('Name') || 
-        prevSibling.querySelector('button')) {
-      headerRow = prevSibling;
-    }
-  }
-  
-  // If no header found, search in parent's previous sibling (for separated header structures)
-  if (!headerRow && parent.previousElementSibling) {
-    const headerContainer = parent.previousElementSibling as HTMLElement;
-    const potentialHeader = headerContainer.querySelector(':scope > div') as HTMLElement;
-    if (potentialHeader && potentialHeader.children.length === targetChildCount) {
-      headerRow = potentialHeader;
-    }
-  }
-  
-  // Filter siblings with similar structure
-  const similarRows = siblings.filter(sibling => {
-    if (sibling === element) return true;
+  // Find all siblings with identical structure
+  const identicalSiblings = siblings.filter(sibling => {
+    if (sibling.children.length !== targetChildCount) return false;
     
-    // Check if has similar class structure
-    const siblingClasses = sibling.className.split(' ').filter(c => c.length > 0);
-    const hasCommonClasses = targetClasses.some(c => siblingClasses.includes(c));
-    
-    // Check if has same number of children
-    const sameChildCount = sibling.children.length === targetChildCount;
-    
-    // Check if has similar display style
+    const siblingSignature = getStructureSignature(sibling);
     const siblingStyle = window.getComputedStyle(sibling);
-    const sameDisplay = siblingStyle.display === targetStyle.display;
     
-    return hasCommonClasses && sameChildCount && sameDisplay;
+    return siblingSignature === targetSignature && 
+           siblingStyle.display === targetStyle.display;
   });
   
-  // Add header if found
-  if (headerRow && !similarRows.includes(headerRow)) {
-    return [headerRow, ...similarRows];
+  // If we found at least 2 rows with identical structure (including the selected one)
+  if (identicalSiblings.length >= 2) {
+    // Look for a potential header row
+    let headerRow: HTMLElement | null = null;
+    
+    // Check immediate previous sibling
+    const prevSibling = identicalSiblings[0].previousElementSibling as HTMLElement;
+    if (prevSibling && prevSibling.children.length === targetChildCount) {
+      const prevStyle = window.getComputedStyle(prevSibling);
+      const prevSignature = getStructureSignature(prevSibling);
+      
+      // Header often has same structure but different styling (bold, background)
+      if (prevSignature === targetSignature || 
+          prevStyle.fontWeight === 'bold' || 
+          prevStyle.backgroundColor !== targetStyle.backgroundColor) {
+        headerRow = prevSibling;
+      }
+    }
+    
+    // Check parent's previous sibling for separated header
+    if (!headerRow && parent.previousElementSibling) {
+      const headerContainer = parent.previousElementSibling as HTMLElement;
+      const potentialHeaders = Array.from(headerContainer.children) as HTMLElement[];
+      
+      for (const potentialHeader of potentialHeaders) {
+        if (potentialHeader.children.length === targetChildCount) {
+          const headerSignature = getStructureSignature(potentialHeader);
+          if (headerSignature === targetSignature) {
+            headerRow = potentialHeader;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Return header + identical siblings
+    if (headerRow && !identicalSiblings.includes(headerRow)) {
+      return [headerRow, ...identicalSiblings];
+    }
+    
+    return identicalSiblings;
   }
   
-  return similarRows;
+  // If no sufficient siblings found, return empty array to indicate not a table
+  return [];
 }
 
 function elementsToGrid(elements: HTMLElement[]): NonTableGrid {
@@ -276,13 +296,13 @@ function handleMouseMove(e: MouseEvent): void {
   
   // Find potential row element (might be the target or its parent)
   let rowElement = target;
+  let depth = 0;
   
   // Try to find a suitable row element by going up the DOM tree
-  while (rowElement && rowElement !== document.body) {
+  while (rowElement && rowElement !== document.body && depth < 10) {
     // Check if this element has multiple children that could be cells
     if (rowElement.children.length > 1) {
       // Check if children have consistent structure
-      const firstChild = rowElement.children[0] as HTMLElement;
       const hasConsistentChildren = Array.from(rowElement.children).every(child => {
         return child.nodeType === 1; // Element node
       });
@@ -292,6 +312,7 @@ function handleMouseMove(e: MouseEvent): void {
       }
     }
     rowElement = rowElement.parentElement as HTMLElement;
+    depth++;
   }
   
   if (rowElement && rowElement !== document.body) {
@@ -309,7 +330,9 @@ function handleClick(e: MouseEvent): void {
   
   // Find the row element similar to mousemove
   let rowElement = target;
-  while (rowElement && rowElement !== document.body) {
+  let depth = 0;
+  
+  while (rowElement && rowElement !== document.body && depth < 10) {
     if (rowElement.children.length > 1) {
       const hasConsistentChildren = Array.from(rowElement.children).every(child => {
         return child.nodeType === 1;
@@ -320,27 +343,55 @@ function handleClick(e: MouseEvent): void {
       }
     }
     rowElement = rowElement.parentElement as HTMLElement;
+    depth++;
   }
   
   if (rowElement && rowElement !== document.body) {
     selectionState.selectedElement = rowElement;
-    selectionState.gridElements = findSiblingRows(rowElement);
+    const detectedRows = findSiblingRows(rowElement);
     
-    // Highlight all selected elements
-    selectionState.gridElements.forEach((el, index) => {
-      el.style.outline = '2px solid #4CAF50';
-      el.style.outlineOffset = '-2px';
-    });
-    
-    // Send grid info back to popup
-    const grid = elementsToGrid(selectionState.gridElements);
-    browser.runtime.sendMessage({ 
-      type: 'grid_selected', 
-      grid 
-    });
-    
-    // Disable selection mode
-    disableSelectionMode();
+    // Only proceed if we detected a table-like structure (at least 2 rows)
+    if (detectedRows.length >= 2) {
+      selectionState.gridElements = detectedRows;
+      
+      // Highlight all selected elements
+      selectionState.gridElements.forEach((el) => {
+        el.style.outline = '2px solid #4CAF50';
+        el.style.outlineOffset = '-2px';
+      });
+      
+      // Send grid info back to popup
+      const grid = elementsToGrid(selectionState.gridElements);
+      
+      // Store the grid data for when popup reopens
+      (window as any).detectedGrid = grid;
+      
+      // Try to send message to popup (might fail if popup is closed)
+      try {
+        browser.runtime.sendMessage({ 
+          type: 'grid_selected', 
+          grid 
+        });
+      } catch (err) {
+        // Popup likely closed, grid data is stored for next open
+      }
+      
+      // Disable selection mode
+      disableSelectionMode();
+    } else {
+      // Show feedback that no table structure was detected
+      if (selectionState.overlay) {
+        selectionState.overlay.style.borderColor = '#f44336';
+        selectionState.overlay.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+        
+        setTimeout(() => {
+          if (selectionState.overlay) {
+            selectionState.overlay.style.borderColor = '#4CAF50';
+            selectionState.overlay.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+          }
+        }, 500);
+      }
+    }
   }
 }
 
@@ -374,10 +425,19 @@ function disableSelectionMode(): void {
 export default defineContentScript({
   matches: ['<all_urls>'],
   main() {
-    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       if (message.type === 'get_tables') {
         const tables = scanTables();
-        sendResponse(tables);
+        
+        // Also check if we have a stored grid from previous selection
+        const storedGrid = (window as any).detectedGrid;
+        if (storedGrid) {
+          sendResponse([...tables, storedGrid]);
+          // Clear the stored grid after sending
+          delete (window as any).detectedGrid;
+        } else {
+          sendResponse(tables);
+        }
         return true;
       } else if (message.type === 'export_table') {
         exportTable(message.id);
