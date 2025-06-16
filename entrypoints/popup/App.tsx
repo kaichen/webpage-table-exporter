@@ -85,7 +85,7 @@ function App() {
   const [scanning, setScanning] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hasScanned, setHasScanned] = useState(true);
+  const [hasSelectedGrid, setHasSelectedGrid] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
 
   const handleScan = async () => {
@@ -106,6 +106,12 @@ function App() {
 
       const response = await browser.tabs.sendMessage(tab.id, { type: 'get_tables' });
       setTables(response || []);
+      
+      // Check if response contains grids and update hasSelectedGrid accordingly
+      const hasGridInResponse = response && response.some((item: any) => item.type === 'non-table');
+      if (hasGridInResponse) {
+        setHasSelectedGrid(true);
+      }
     } catch (err) {
       // Handle connection errors silently - likely means content script not available
       if (err instanceof Error && err.message.includes('Could not establish connection')) {
@@ -188,6 +194,7 @@ function App() {
     const handleMessage = (message: any) => {
       if (message.type === 'grid_selected' && message.grid) {
         setGrids([message.grid]);
+        setHasSelectedGrid(true);
       }
     };
 
@@ -225,21 +232,6 @@ function App() {
           {hasGridsOnly && `Found ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
           {hasBoth && `Found ${tables.length} table${tables.length !== 1 ? 's' : ''} and ${grids.length} grid${grids.length !== 1 ? 's' : ''} on this page`}
         </p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {/* Show Refresh button only when we have found items */}
-          {!hasNone && (
-            <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
-              {scanning ? 'Scanning...' : 'Refresh'}
-            </button>
-          )}
-          {/* Show Select Elements button when no tables or always as secondary when tables exist */}
-          <button 
-            onClick={handleSelectionMode} 
-            className={`scan-btn ${hasNone ? '' : 'secondary'} selection-btn`}
-          >
-            {selectionMode ? 'Cancel Selection' : 'Select Elements'}
-          </button>
-        </div>
       </div>
       <TableList 
         tables={allItems} 
@@ -247,6 +239,21 @@ function App() {
         onHighlight={handleHighlight} 
         exportingId={exportingId} 
       />
+      
+      <div className="bottom-actions">
+        <button 
+          onClick={handleSelectionMode} 
+          className="scan-btn selection-btn"
+        >
+          {selectionMode ? 'Cancel Selection' : 'Select Elements'}
+        </button>
+        {/* Show Refresh button only after selection has been used */}
+        {hasSelectedGrid && (
+          <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
+            {scanning ? 'Scanning...' : 'Refresh'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -180,3 +180,12 @@
   margin-left: 8px;
   vertical-align: middle;
 }
+
+.bottom-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e1e5e9;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
