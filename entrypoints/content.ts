@@ -56,7 +56,7 @@ function scanTables(): TableMeta[] {
       id: `table-${index}`,
       rows,
       cols,
-      preview: previewCells.join(' | ') || 'Empty table'
+      preview: previewCells.join(' | ') || browser.i18n.getMessage('emptyTable')
     };
   });
 }
@@ -269,7 +269,7 @@ function elementsToGrid(elements: HTMLElement[]): NonTableGrid {
     type: 'non-table',
     rows,
     cols,
-    preview: previewCells.join(' | ') || 'Empty grid',
+    preview: previewCells.join(' | ') || browser.i18n.getMessage('emptyGrid'),
     elements
   };
 }
