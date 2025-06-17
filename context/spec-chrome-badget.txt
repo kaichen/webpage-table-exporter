@@ -1,0 +1,154 @@
+以下内容基于 Manifest V3（MV3），因为 2025 年起 Chrome Web Store 仅接受 MV3 扩展。若你仍维护旧版（Manifest V2, MV2），核心 API 叫 chrome.browserAction.*，参数几乎一致，仅需将 action 改为 browserAction。下文专讲 MV3。
+
+⸻
+
+1. Badge（角标）的本质
+
+Chrome 把“扩展图标 + 角标 + tooltip”合称 Action UI，对应统一的 chrome.action 命名空间。
+角标是一块最多容纳 4 个字符的小矩形，随图标放在工具栏，常用于：
+	•	未处理计数（消息、下载任务、待办等）
+	•	状态提示（ON / OFF、✓、⚠︎）
+	•	背景色 + 文本双编码表达优／警告／错误等不同级别
+
+限制：
+	•	仅支持纯文本（UTF-8 字符串），不支持换行或富文本。
+	•	文字超 4 字符会被截断（在高 DPI 下可勉强塞 5 字符，但不保证可读性）。
+	•	背景色是单色，无法渐变或透明。
+
+⸻
+
+2. 在 Manifest 中准备
+
+{
+  "manifest_version": 3,
+  "name": "My Badge Demo",
+  "version": "0.1.0",
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Badge Demo",
+    "default_badge_text": "",
+    "default_badge_background_color": [0, 0, 0, 0] // 透明即可
+  },
+  "background": { "service_worker": "bg.js" },
+  "permissions": ["storage", "alarms"]            // 仅示例；角标本身不需权限
+}
+
+	•	default_badge_text & default_badge_background_color 让扩展在未初始化前不会闪一下默认红底白字“script 未就绪”的体验。
+	•	不必在 Manifest 里声明 action 相关权限；调用 chrome.action.* 默认允许。
+
+⸻
+
+3. 基本 API 速查表
+
+操作	方法	典型用法
+设置文字	chrome.action.setBadgeText({text, tabId?})	text: '' 可清空
+设置背景色	chrome.action.setBadgeBackgroundColor({color, tabId?})	color 支持 [r,g,b,a] 或 CSS 十六进制
+获取现值	对应 getBadgeText/getBadgeBackgroundColor	回调或 Promise
+改 Tooltip	chrome.action.setTitle({title, tabId?})	与角标常同时更新
+针对某个 tab	传 tabId	让 badge 反映页面级状态
+针对窗口或全局	省略 tabId	让 badge 反映扩展全局状态
+
+
+⸻
+
+4. 更新机制：常见两条流
+
+4.1 事件驱动（推荐）
+	1.	事件源：
+	•	Content Script 检测页面变化 → chrome.runtime.sendMessage 给背景脚本
+	•	chrome.storage.onChanged 监听全局状态变动
+	•	chrome.alarms.onAlarm 定时触发（如每分钟刷新一次计数）
+	2.	单一 Badge 更新器（background/service worker）
+	•	收到事件 → Pull/计算最新数值
+	•	调 chrome.action.setBadgeText / …BackgroundColor 更新
+	3.	可选：把最新值存回 chrome.storage，方便在 service worker suspend 后重新加载时恢复。
+
+// bg.js (MV3 service worker)
+chrome.runtime.onMessage.addListener(async (msg, sender) => {
+  if (msg.type === 'COUNT_UPDATED') {
+    const { count, level } = msg.payload;
+    await updateBadge(count, level, sender.tab?.id);
+  }
+});
+
+async function updateBadge(count, level, tabId) {
+  const colorMap = { normal: '#4285F4', warn: '#FFA000', error: '#D93025' };
+  const text = count === 0 ? '' : String(count);
+  await chrome.action.setBadgeText({ text, tabId });
+  await chrome.action.setBadgeBackgroundColor({ color: colorMap[level], tabId });
+}
+
+4.2 轮询（保底方案）
+
+当无法轻易捕捉事件源时，用 chrome.alarms 设置周期轮询。
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.alarms.create('refreshBadge', { periodInMinutes: 1 });
+});
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === 'refreshBadge') {
+    const count = await fetchUnreadCount();
+    updateBadge(count, 'normal'); // 同上
+  }
+});
+
+	•	别把轮询频率设太高；MV3 service worker 每唤醒一次都是冷启动，耗电量 vs. 可用性需折中。
+
+⸻
+
+5. 跨文件通信形态
+
+角色	典型用途	传输方式
+Content Script → BG	页面检测的新消息数	chrome.runtime.sendMessage 或 chrome.tabs.sendMessage
+BG → Popup	当 Popup 打开时请求最新状态	chrome.runtime.sendMessage 或 chrome.runtime.connect
+BG ↔ Options Page	手动设置配色 / 重置计数	chrome.storage + 监听 onChanged
+
+背景脚本才唯一负责 chrome.action 调用，确保更新来源集中，避免出现 race condition。
+
+⸻
+
+6. 多窗口 / 多标签策略
+	•	若扩展逻辑是“全局”的（例如待办总数），直接全局设置，不带 tabId。
+	•	若逻辑是“页面特定”的（例如当前 tab 是否已被拦截广告），
+	•	在 Tab 切换时（chrome.tabs.onActivated），重新计算并调用 setBadgeText({tabId})。
+	•	在 Tab 更新时（chrome.tabs.onUpdated with status === 'complete'）亦需刷新。
+	•	切换标签后若不主动清空旧 tab 上的 badge，会遗留“幽灵角标”。好的做法是在 onUpdated 早期就 setBadgeText({text: '', tabId})，待检测逻辑完再写正确值。
+
+⸻
+
+7. 性能 & UX 细节
+
+问题	建议
+Service worker 被挂起后，角标仍保留旧值？	将最后一次 badge 状态写进 chrome.storage.session，onStartup / onInstalled 恢复。
+频繁写 Badge 造成闪烁	先读旧值，只有实际变化时才写。或设节流（requestIdleCallback / 自建 debounce）。
+高 DPI 下文本被压缩	字符 ≤ 3 最保险；或使用缩写符号（✓, ⚠︎, !）。
+与通知 API 组合	角标显示计数，点击图标或自动弹 chrome.notifications.create 进一步提示。
+
+
+⸻
+
+8. 调试技巧
+	1.	DevTools → Service Workers 标签页（chrome://serviceworker-internals）可以强制激活或查看 console log。
+	2.	在 DevTools Console 里手动调用：
+
+chrome.action.setBadgeText({text: '99+'});
+chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
+
+即时验证配色／字体截断。
+
+	3.	使用 chrome.storage 观测：DevTools → Application → Storage → Extension Storage。
+
+⸻
+
+小结
+	•	Manifest V3 中，所有角标操作统一走 chrome.action.*，无需额外权限。
+	•	最佳实践：事件驱动 + 单一更新器——把所有触发点归并到背景脚本，避免不同脚本同时写 badge 造成抖动。
+	•	准备好挂起 / 恢复策略，保证 service worker suspend 后角标仍保持正确状态。
+
+按上述结构实现，即可兼容现行 Chrome 与 Edge、Opera、Brave 等基于 Chromium 的浏览器。

@@ -376,8 +376,8 @@ function handleClick(e: MouseEvent): void {
         // Popup likely closed, grid data is stored for next open
       }
       
-      // Disable selection mode
-      disableSelectionMode();
+      // Disable selection mode (don't clear badge since we just showed success)
+      disableSelectionMode(true);
     } else {
       // Show feedback that no table structure was detected
       if (selectionState.overlay) {
@@ -402,9 +402,12 @@ function enableSelectionMode(): void {
   
   // Change cursor
   document.body.style.cursor = 'crosshair';
+  
+  // Send message to show magnifying glass badge
+  browser.runtime.sendMessage({ type: 'selection_mode_enabled' }).catch(() => {});
 }
 
-function disableSelectionMode(): void {
+function disableSelectionMode(skipBadgeClear: boolean = false): void {
   selectionState.enabled = false;
   document.removeEventListener('mousemove', handleMouseMove);
   document.removeEventListener('click', handleClick, true);
@@ -414,6 +417,11 @@ function disableSelectionMode(): void {
   
   // Remove overlay
   removeOverlay();
+  
+  // Send message to clear magnifying glass badge (unless we just selected a grid)
+  if (!skipBadgeClear) {
+    browser.runtime.sendMessage({ type: 'selection_mode_disabled' }).catch(() => {});
+  }
   
   // Remove outlines from selected elements
   selectionState.gridElements.forEach(el => {

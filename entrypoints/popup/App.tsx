@@ -188,6 +188,9 @@ function App() {
 
   // Auto-scan on popup open and listen for grid selection
   useEffect(() => {
+    // Clear badge when popup opens
+    browser.runtime.sendMessage({ type: 'clear_badge' }).catch(() => {});
+    
     // Auto-scan when popup opens
     handleScan();
     
