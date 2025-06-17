@@ -26,7 +26,9 @@ export default defineBackground(() => {
   async function updateBadge(text: string, color: string, tabId?: number) {
     try {
       await browser.action.setBadgeText({ text, tabId });
-      await browser.action.setBadgeBackgroundColor({ color, tabId });
+      const colorSpec: string | [number, number, number, number] =
+        color === 'transparent' ? [0, 0, 0, 0] : color;
+      await browser.action.setBadgeBackgroundColor({ color: colorSpec as any, tabId });
     } catch (error) {
       console.error('Failed to update badge:', error);
     }
