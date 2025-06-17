@@ -23,5 +23,7 @@
   "selectElementsHint": {"message": "Use the \"Select Elements\" button to select grid elements from this page"},
   "tableExporter": {"message": "Table Exporter"},
   "emptyTable": {"message": "Empty table"},
-  "emptyGrid": {"message": "Empty grid"}
+  "emptyGrid": {"message": "Empty grid"},
+  "cols": {"message": "cols"},
+  "rows": {"message": "rows"}
 }

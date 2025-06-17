@@ -190,3 +190,48 @@
   gap: 8px;
   justify-content: center;
 }
+
+/* Icon styles */
+.btn-icon {
+  vertical-align: middle;
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+.export-btn .btn-icon {
+  font-size: 12px;
+}
+
+.grid-icon {
+  vertical-align: middle;
+  margin-right: 2px;
+  font-size: 12px;
+}
+
+/* Spinning animation for refresh icon */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* Button layouts with icons */
+.scan-btn,
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.scan-btn span,
+.export-btn span {
+  vertical-align: middle;
+}

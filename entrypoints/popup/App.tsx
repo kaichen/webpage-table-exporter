@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { FiDownload, FiRefreshCw, FiMousePointer, FiX } from 'react-icons/fi';
+import { RiGridLine } from 'react-icons/ri';
 
 interface TableMeta {
   id: string;
@@ -27,8 +29,8 @@ function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps
     <div className="table-item" onClick={() => onHighlight(table.id)}>
       <div className="table-info">
         <div className="table-size">
-          {table.cols} × {table.rows}
-          {isGrid && <span className="grid-indicator">{browser.i18n.getMessage('gridIndicator')}</span>}
+          {table.cols} {browser.i18n.getMessage('cols')} × {table.rows} {browser.i18n.getMessage('rows')}
+          {isGrid && <span className="grid-indicator"><RiGridLine className="grid-icon" />{browser.i18n.getMessage('gridIndicator')}</span>}
         </div>
         <div className="table-preview">{table.preview}</div>
       </div>
@@ -40,7 +42,8 @@ function TableItem({ table, onExport, onHighlight, isExporting }: TableItemProps
         disabled={isExporting}
         className="export-btn"
       >
-        {isExporting ? browser.i18n.getMessage('exporting') : browser.i18n.getMessage('exportCsv')}
+        <FiDownload className="btn-icon" />
+        <span>{isExporting ? browser.i18n.getMessage('exporting') : browser.i18n.getMessage('exportCsv')}</span>
       </button>
     </div>
   );
@@ -81,7 +84,6 @@ function TableList({ tables, onExport, onHighlight, exportingId }: TableListProp
 function App() {
   const [tables, setTables] = useState<TableMeta[]>([]);
   const [grids, setGrids] = useState<NonTableGrid[]>([]);
-  const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -213,7 +215,8 @@ function App() {
         <h1>{browser.i18n.getMessage('tableExporter')}</h1>
         <div className="error">{error}</div>
         <button onClick={handleScan} disabled={scanning} className="scan-btn">
-          {scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('tryAgain')}
+          <FiRefreshCw className={`btn-icon ${scanning ? 'spinning' : ''}`} />
+          <span>{scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('tryAgain')}</span>
         </button>
       </div>
     );
@@ -248,12 +251,14 @@ function App() {
           onClick={handleSelectionMode} 
           className="scan-btn selection-btn"
         >
-          {selectionMode ? browser.i18n.getMessage('cancelSelection') : browser.i18n.getMessage('selectElements')}
+          {selectionMode ? <FiX className="btn-icon" /> : <FiMousePointer className="btn-icon" />}
+          <span>{selectionMode ? browser.i18n.getMessage('cancelSelection') : browser.i18n.getMessage('selectElements')}</span>
         </button>
         {/* Show Refresh button only after selection has been used */}
         {hasSelectedGrid && (
           <button onClick={handleScan} disabled={scanning} className="scan-btn secondary">
-            {scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('refresh')}
+            <FiRefreshCw className={`btn-icon ${scanning ? 'spinning' : ''}`} />
+            <span>{scanning ? browser.i18n.getMessage('scanning') : browser.i18n.getMessage('refresh')}</span>
           </button>
         )}
       </div>

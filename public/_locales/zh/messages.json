@@ -23,5 +23,7 @@
   "selectElementsHint": {"message": "点击\"选择元素\"按钮从页面选择网格元素"},
   "tableExporter": {"message": "表格导出器"},
   "emptyTable": {"message": "空表格"},
-  "emptyGrid": {"message": "空网格"}
+  "emptyGrid": {"message": "空网格"},
+  "cols": {"message": "列"},
+  "rows": {"message": "行"}
 }
