@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import './App.css';
 import { FiDownload, FiRefreshCw, FiMousePointer, FiX } from 'react-icons/fi';
 import { RiGridLine } from 'react-icons/ri';
+import { isSupportedTab } from './utils';
 
 interface TableMeta {
   id: string;
@@ -130,7 +131,7 @@ function App() {
   const handleSelectionMode = async () => {
     try {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-      if (!tab.id) {
+      if (!isSupportedTab(tab)) {
         setError(browser.i18n.getMessage('unableAccess'));
         return;
       }
@@ -154,7 +155,7 @@ function App() {
     try {
       setExportingId(tableId);
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-      if (!tab.id) {
+      if (!isSupportedTab(tab)) {
         throw new Error(browser.i18n.getMessage('unableAccess'));
       }
 
@@ -175,7 +176,7 @@ function App() {
   const handleHighlight = async (tableId: string) => {
     try {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-      if (!tab.id) {
+      if (!isSupportedTab(tab)) {
         return;
       }
 
